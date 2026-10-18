@@ -56,11 +56,11 @@ test('US standard drink equivalents and a stronger large beer', () => {
   near(servingStandardDrinks(16, 8), 2.1333333333333333);
 });
 test('threshold boundaries have explicit inclusive semantics', () => {
-  assert.equal(classify(0, 0.03, 0.06), 'low');
-  assert.equal(classify(0.029999, 0.03, 0.06), 'low');
-  assert.equal(classify(0.03, 0.03, 0.06), 'mid');
-  assert.equal(classify(0.059999, 0.03, 0.06), 'mid');
-  assert.equal(classify(0.06, 0.03, 0.06), 'high');
+  assert.equal(classify(0, 0.04, 0.08), 'low');
+  assert.equal(classify(0.039999, 0.04, 0.08), 'low');
+  assert.equal(classify(0.04, 0.04, 0.08), 'mid');
+  assert.equal(classify(0.079999, 0.04, 0.08), 'mid');
+  assert.equal(classify(0.08, 0.04, 0.08), 'high');
 });
 test('all 286 table coordinates yield finite, nonnegative values', () => {
   for (let drinks = 0; drinks <= 21; drinks += 1) {
@@ -143,5 +143,30 @@ test('missing objects and fractional matrix coordinates normalize safely', () =>
   const state = normalizeState({ ...defaults, drinks: 2.5, hours: 0.5 });
   assert.equal(state.drinks, defaults.drinks);
   assert.equal(state.hours, defaults.hours);
+});
+test('fresh state uses the requested 0.040 and 0.080 marker defaults', () => {
+  for (const state of [defaults, plain(normalizeState({})), plain(stateFromHash('')), plain(stateFromHash('#v=1'))]) {
+    near(state.low, 0.04);
+    near(state.high, 0.08);
+  }
+});
+test('existing links preserve explicit historical and custom marker settings', () => {
+  const state=stateFromHash('#v=1&low=0.03&high=0.06&preset=higher');
+  near(state.low, 0.03);
+  near(state.high, 0.06);
+  const again=stateFromHash(stateToHash(state));
+  near(again.low, 0.03);
+  near(again.high, 0.06);
+});
+test('volume and implied grams per hour obey independently checked units', () => {
+  const weight=72.5747792;
+  near(model.distributionVolume(weight,0.68),49.350849856);
+  near(model.impliedEliminationGrams(weight,0.68,0.015),7.4026274784);
+  near(model.impliedEliminationGrams(weight,0.55,0.015),5.987419284);
+  near(model.impliedEliminationGrams(weight*2,0.68,0.015),14.8052549568);
+  const volume=model.distributionVolume(weight,0.68);
+  const removal=model.impliedEliminationGrams(weight,0.68,0.015);
+  near(removal/(10*volume),0.015);
+  near(estimate(4,0,weight,0.68,0.015)-estimate(4,1,weight,0.68,0.015),removal/(10*volume));
 });
 process.stdout.write(`${passed} independent model checks passed.\n`);

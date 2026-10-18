@@ -1,12 +1,12 @@
 # Verification
 
-Checked October 16, 2026.
+Initial release checked October 16, 2026. The default-marker and model-explanation update was checked October 18, 2026.
 
 ## Automated calculation and state checks
 
-`node tests/model-test.cjs` — **16 checks passed** against the model script extracted from the shipped HTML, with no third-party test dependencies.
+`node tests/model-test.cjs` — **19 checks passed** against the model script extracted from the shipped HTML, with no third-party test dependencies.
 
-Coverage includes independently calculated numerical examples; all 286 coordinates; nonnegative clamping; elimination and dose direction; beer/wine/spirits equivalence; inclusive threshold boundaries; lb/kg conversion; documented numeric limits; preset precedence; custom state round trips; unsupported URL versions; nonfinite, fractional, malformed, and hostile parameters; and paired marker validation.
+Coverage includes independently calculated numerical examples; all 286 coordinates; nonnegative clamping; elimination and dose direction; beer/wine/spirits equivalence; inclusive threshold boundaries; lb/kg conversion; documented numeric limits; preset precedence; custom state round trips; unsupported URL versions; nonfinite, fractional, malformed, and hostile parameters; paired marker validation; fresh 0.040% / 0.080% defaults; preservation of explicit older-link markers; and independent unit checks for effective dilution volume and implied grams/hour.
 
 One independent anchor: 160 lb, 4 US standard drinks over 2 hours, r = 0.68, elimination 0.015 percentage points/hour gives 0.083473223…%, displayed as 0.083%. Switching to r = 0.55 gives 0.110294166…%, displayed as 0.110%.
 
@@ -25,6 +25,16 @@ The app was served locally over HTTP and checked in the desktop app's browser.
 - Arrow navigation moves selection, changes the hour, and preserves one keyboard tab stop, including in one-hour mode.
 - Console inspection after the tested interactions showed no warnings or errors.
 - Desktop and phone screenshots are supplied alongside the app bundle.
+
+## October 18 update checks
+
+- Fresh pages and Reset all settings use 0.040% and 0.080%. Explicit 0.030% / 0.060% markers in an older shared link remain intact until reset.
+- The parameter-first control reads “Alcohol dilution factor (r)” with options 0.68 L/kg, 0.55 L/kg, and Custom r. The concise explanation maps the traditional adult reference averages below the control.
+- At 160 lb and r = 0.68, the new readouts show approximately 49.4 L effective dilution volume and 7.4 g/hour implied removal at beta = 0.015.
+- Selecting r = 0.55 changes those readouts to 39.9 L and 6.0 g/hour. Custom r = 0.60 and beta = 0.020 show 43.5 L and 8.7 g/hour.
+- Invalid r clears the derived readouts and table; correcting it recovers the results.
+- Expanded body-composition and elimination explanations were inspected. At 375 × 850, the revised control and explanatory text remain readable with no page overflow.
+- Browser console inspection during these checks showed no warnings or errors.
 
 ## Verification limits
 

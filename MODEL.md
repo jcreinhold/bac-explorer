@@ -2,7 +2,7 @@
 
 This app is an educational comparison table. It computes a simplified estimate near the end of a hypothetical drinking session. It does **not** measure BAC, predict a person's actual highest BAC, determine impairment, or establish when driving is safe.
 
-Sources were checked on October 16, 2026. The formula and assumptions below are implemented in `index.html`; there is no remote calculation service.
+Sources and the body-composition/elimination explanations were checked on October 18, 2026. The formula and assumptions below are implemented in `index.html`; there is no remote calculation service.
 
 ## Formula and units
 
@@ -31,11 +31,35 @@ The model is a simplified member of the Widmark family. It uses distribution and
 - **Weight:** 160 lb initially; the user can change it independently of anyone else's settings.
 - **Distribution:** `r = 0.68 L/kg` by default, with a second preset of `0.55 L/kg` and a custom input from 0.40 to 0.90.
 - **Elimination:** `beta = 0.015` BAC percentage points/hour, with an exploration range of 0.010 to 0.030.
-- **Reference markers:** 0.030% and 0.060% BAC initially, both editable.
+- **Reference markers:** 0.040% and 0.080% BAC initially, both editable.
 
-The distribution presets are historical population averages associated with male and female study groups. Alcohol distributes mainly in body water, and body composition varies widely. Age, body composition, and other characteristics affect the apparent distribution volume. These are coarse sex-associated assumptions, not a gender identity classification or a measurement of any user's body. A custom value permits comparison of assumptions; it does not validate the estimate for an individual. Modern literature discusses more individualized total-body-water approaches and limitations of fixed distribution factors. See [Maskell et al. (2020)](https://doi.org/10.1016/j.forsciint.2020.110532).
+### What r means, and how body composition matters
 
-The default elimination rate is a population approximation. A review identifies 0.015 g/dL/hour as a useful average for moderate drinkers and reports much wider context-dependent physiological rates. The app's allowed range is an interface choice for exploration, not the full range of human physiology or an individualized uncertainty interval. Subtracting `0.015` each hour means a drop of **0.015 percentage points**, not a 1.5% relative reduction. See [Jones (2010)](https://pubmed.ncbi.nlm.nih.gov/20304569/).
+**r is an effective alcohol-dilution volume per kilogram of body weight.** At r = 0.68 L/kg, a 72.6 kg person has a modeled distribution volume of about 49.4 L. “Apparent” means a volume inferred from alcohol dose and blood concentration; it is not a measured anatomical space, blood volume, or percentage of the body made of water. In particular, r = 0.68 does not mean 68% body water.
+
+Alcohol distributes mainly in body water. Muscle contains more water than fat. At the same weight, more muscle and less body fat generally mean a larger dilution volume and higher r; more body fat generally means lower r. Differences in body composition help explain the traditional adult male/female average difference. A controlled study compared body-fat-derived and alcohol-curve-derived distribution volumes, while later work discusses limitations of fixed factors: [Cowan et al. (1996)](https://pubmed.ncbi.nlm.nih.gov/8872236/), [Maskell et al. (2020)](https://doi.org/10.1016/j.forsciint.2020.110532).
+
+The control is labeled **Alcohol dilution factor (r)**, and its presets are numeric: **0.68 L/kg**, **0.55 L/kg**, or **Custom r**. A short explanation below identifies the traditional adult male/female reference averages and says that anyone can use either preset or a custom value. Current body composition may differ from either average. These historical study-group labels should not be read as evidence that the studies measured gender identity or that a person's sex assignment determines an individual r.
+
+A measured body-fat percentage can inform the direction of a comparison, but it is not r and should not be subtracted from 100% to obtain r. This app does not claim a validated one-to-one body-fat-to-r conversion. The custom range permits exploration; it is not an individualized confidence interval. Age, hydration, blood-water concentration, and how body composition is measured also matter.
+
+### Why the elimination default is a concentration drop
+
+The default **0.015 BAC percentage points/hour** is a population approximation, not a personal measurement. For example, a post-absorption BAC of 0.080% would fall to 0.065% after one modeled hour. [Jones (2010)](https://pubmed.ncbi.nlm.nih.gov/20304569/) supports this as a useful average for moderate drinkers and describes wider rates under different conditions. The interface range 0.010–0.030 is for comparison, not the full physiological range or an individualized interval.
+
+Distribution volume and elimination are related. If V is apparent distribution volume in liters and E is alcohol removed in grams/hour, unit conversion gives:
+
+```text
+V = r × weight_kg
+beta = E / (10 × V)
+E = 10 × beta × r × weight_kg
+```
+
+At 160 lb, r = 0.68, and beta = 0.015, V is about **49.4 L** and the implied removal is about **7.4 g/hour**. The UI shows both dynamically. This is a consequence of the chosen assumptions, not a separate estimate of liver function.
+
+For a fixed E, a larger V means a smaller concentration drop. E itself is not fixed across people: lean mass and liver size are associated with grams/hour, and food, genetics, health, and drinking history can also affect elimination. A primary study distinguishes alcohol elimination in grams/hour from the descending concentration slope, and another relates elimination to fat-free mass: [Vatsalya et al. (2023)](https://pubmed.ncbi.nlm.nih.gov/36152778/), [Seyedsadjadi et al. (2023)](https://pmc.ncbi.nlm.nih.gov/articles/PMC11265204/).
+
+Weight and r alone cannot identify an individual's metabolic capacity. The app therefore keeps beta independently adjustable. Holding beta constant while changing weight or r implicitly changes the grams/hour the model assumes; the dynamic readout makes that explicit. This does not assert physiological independence of the parameters. The linear approximation is also less reliable near zero BAC and during ongoing absorption.
 
 ## What the table assumes—and what “peak” means
 
@@ -62,9 +86,9 @@ The three colors compare the unrounded estimate with two chosen reference marker
 - At or above the first marker and below the second.
 - At or above the second marker.
 
-The defaults, 0.030% and 0.060%, are **illustrative personal caution markers for recreational drinking**, not validated medical risk categories, recommended drinking targets, or legal limits. The lowest band does not mean safe. Color boundaries cannot diagnose impairment or account for medication interactions and other risks.
+The defaults, 0.040% and 0.080%, are **personal caution markers for recreational drinking**, not validated medical risk categories or drinking targets. The first is a rough “buzzed” reference chosen for this app, not a universal onset threshold. Subjective feelings vary, and impairment can occur below it. The lowest band does not mean safe. Color boundaries cannot diagnose impairment or account for medication interactions and other risks.
 
-0.08% is a familiar US driving-law reference, but laws and driver-specific requirements vary, and impairment can occur below legal thresholds. The app does not use a legal driving cutoff as a color boundary. Never use an estimated number, its color, or a modeled zero to decide whether to drive. See [NHTSA's alcohol and driving information](https://www.nhtsa.gov/risky-driving/drunk-driving).
+0.08% is a familiar US driving-law reference, but laws and driver-specific requirements vary, and impairment can occur below legal thresholds. The default second marker coincides with that familiar reference, but the color bands are personal caution markers and do not encode jurisdiction-specific laws. Never use an estimated number, its color, or a modeled zero to decide whether to drive. See [NHTSA's alcohol and driving information](https://www.nhtsa.gov/risky-driving/drunk-driving).
 
 ## US standard drinks and the optional serving helper
 

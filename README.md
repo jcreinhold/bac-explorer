@@ -16,14 +16,14 @@ You can send this HTML file directly to your partner. They open their own copy a
 
 - A full matrix: 0–21 US standard drinks × 0–12 hours spent drinking.
 - BAC percentages on every cell, selectable scenarios, sticky headers, and keyboard arrow navigation.
-- Body weight in lb or kg; transparent 0.68 / 0.55 distribution assumptions and a custom factor.
-- Editable caution markers and elimination assumption, with immediate validation and recalculation.
+- Body weight in lb or kg; numeric r presets (0.68 / 0.55 L/kg), a custom r, and plain-language body-composition explanations.
+- Editable caution markers (defaults 0.040% / 0.080%) and elimination assumption, with immediate validation and recalculation.
 - A readable “One hour” view for small screens, alongside the scrollable full matrix.
 - A serving-size / ABV converter. Table rows always stay 14 g US standard drinks.
 - State in the URL fragment; Copy share link; printable layout including assumptions.
 - Formula, units, academic/government sources, and limitations in the app and `MODEL.md`.
 
-The output is labeled an approximate session estimate. This simple model cannot predict an individual's actual highest BAC, measure intoxication, or establish whether driving is safe. The illustrative 0.030% / 0.060% color markers are independent of legal limits and are not medically validated risk categories.
+The output is labeled an approximate session estimate. This simple model cannot predict an individual's actual highest BAC, measure intoxication, or establish whether driving is safe. The default 0.040% / 0.080% markers are personal caution references, not medically validated risk categories or driving guidance. “Buzzed” is subjective and can occur at different BACs.
 
 ## Publish with GitHub Pages
 
@@ -37,6 +37,14 @@ The output is labeled an approximate session estimate. This simple model cannot 
 The app is published at [jcreinhold.github.io/bac-explorer](https://jcreinhold.github.io/bac-explorer/). A `file:` or `localhost` link works only on your own device; use the hosted address for cross-device links. GitHub Pages publishes the application publicly. Personal settings remain in each visitor's URL fragment rather than in the repository.
 
 The deployment steps follow [GitHub's publishing-source documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site). Any static host can serve the same `index.html`, including under a subdirectory.
+
+## Body composition and elimination
+
+The preset chooses r, an effective dilution volume per kilogram. The calculation uses its numeric value, not a sex or gender label. A live readout shows r and the total dilution volume. More muscle generally points toward higher r, and more body fat toward lower r at the same weight; body-fat percentage alone is not an exact conversion.
+
+Elimination is an independently adjustable drop in BAC concentration, defaulting to 0.015 percentage points/hour. Another readout shows the grams/hour implied by that rate, weight, and r. Expanded notes explain the population-average default and why metabolic capacity cannot be inferred from weight and r alone.
+
+Existing shared links keep their explicit marker settings. Open the base website or select **Reset all settings** to use the updated defaults.
 
 ## Using the table
 
