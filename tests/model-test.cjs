@@ -72,7 +72,7 @@ test('all 286 table coordinates yield finite, nonnegative values', () => {
 });
 test('normalization accepts a complete valid customized state', () => {
   const valid = { weightKg: 81.5, unit: 'kg', r: 0.61, preset: 'custom', beta: 0.02,
-    low: 0.025, high: 0.075, drinks: 7, hours: 4, view: 'table', servingOz: 16, abv: 8 };
+    low: 0.025, high: 0.075, drinks: 7, hours: 4, view: 'table', servingOz: 16, abv: 8, bodyFat:null, bloodWater:0.825 };
   assert.deepEqual(plain(normalizeState(valid)), valid);
 });
 test('preset names consistently determine their documented distribution factor', () => {
@@ -83,7 +83,7 @@ test('preset names consistently determine their documented distribution factor',
   near(stateFromHash('#v=1&preset=custom&r=.57').r, 0.57);
 });
 test('all documented numeric range endpoints survive URL round trips', () => {
-  const low = normalizeState({ ...defaults, preset: 'custom', weightKg: 20, r: 0.4,
+  const low = normalizeState({ ...defaults, preset: 'custom', weightKg: 20, r: 0.3,
     beta: 0.01, low: 0.001, high: 0.002, drinks: 0, hours: 0, servingOz: 0.1, abv: 0.1 });
   const high = normalizeState({ ...defaults, preset: 'custom', weightKg: 350, r: 0.9,
     beta: 0.03, low: 0.29, high: 0.3, drinks: 21, hours: 12, servingOz: 128, abv: 96 });
@@ -168,5 +168,60 @@ test('volume and implied grams per hour obey independently checked units', () =>
   const removal=model.impliedEliminationGrams(weight,0.68,0.015);
   near(removal/(10*volume),0.015);
   near(estimate(4,0,weight,0.68,0.015)-estimate(4,1,weight,0.68,0.015),removal/(10*volume));
+});
+test('body-fat method agrees with independently calculated numeric anchors', () => {
+  near(model.FFM_HYDRATION,0.732);
+  near(model.rFromBodyFat(10,0.825),0.7985454545454546);
+  near(model.rFromBodyFat(20,0.825),0.7098181818181819);
+  near(model.rFromBodyFat(30,0.825),0.6210909090909091);
+  near(model.rFromBodyFat(10,0.838),0.7861575178997613);
+  assert.ok(model.rFromBodyFat(10)>model.rFromBodyFat(30));
+});
+test('body-fat derivation conserves mass and agrees with the body-water BAC equation', () => {
+  const weight=80,fat=10,fw=0.825;
+  near(model.fatFreeMass(weight,fat),72);
+  near(model.bodyWaterFromFat(weight,fat),52.704);
+  const r=model.rFromBodyFat(fat,fw);
+  near(model.distributionVolume(weight,r),63.88363636363636);
+  near(estimate(4,0,weight,r,0.015),56*fw/(10*52.704));
+  near(model.distributionVolume(weight*2,r),2*model.distributionVolume(weight,r));
+});
+test('body-fat selection determines r while manual selection retains the override', () => {
+  const derived=normalizeState({...defaults,preset:'bodyfat',bodyFat:10,bloodWater:0.825,r:0.4});
+  near(derived.r,0.7985454545454546);
+  const manual=normalizeState({...derived,preset:'custom',r:0.67});
+  near(manual.r,0.67);
+  const preset=normalizeState({...derived,preset:'lower'});
+  near(preset.r,0.55);
+});
+test('body-fat URL settings round trip at both blood-water references and range endpoints', () => {
+  for(const bodyFat of [3,10,20,60]) for(const bloodWater of [0.825,0.838]){
+    const state=normalizeState({...defaults,preset:'bodyfat',bodyFat,bloodWater});
+    assert.equal(state.preset,'bodyfat');
+    assert.ok(state.r>=model.bounds.r[0]&&state.r<=model.bounds.r[1]);
+    assert.deepEqual(plain(stateFromHash(stateToHash(state))),plain(state));
+  }
+});
+test('invalid or absent body-fat inputs cannot masquerade as derived r', () => {
+  for(const bodyFat of [null,undefined,'',NaN,Infinity,0,2.9,60.1,'<script>']){
+    const state=normalizeState({...defaults,preset:'bodyfat',bodyFat});
+    assert.equal(state.preset,defaults.preset);
+    assert.equal(state.bodyFat,null);
+    near(state.r,defaults.r);
+  }
+  for(const fat of [null,NaN,0,61])assert.ok(Number.isNaN(model.rFromBodyFat(fat)));
+  assert.ok(Number.isNaN(model.rFromBodyFat(10,0)));
+  near(normalizeState({...defaults,preset:'bodyfat',bodyFat:10,bloodWater:0.83}).bloodWater,0.825);
+});
+test('legacy links preserve settings without inventing a body-fat measurement', () => {
+  const state=stateFromHash('#v=1&weightKg=80&preset=custom&r=0.65&low=.03&high=.06');
+  assert.equal(state.bodyFat,null);
+  near(state.r,0.65);
+  near(state.low,0.03);
+  near(state.high,0.06);
+  assert.equal(new URLSearchParams(stateToHash(state).slice(1)).has('bodyFat'),false);
+  const withFat=stateFromHash(stateToHash({...state,bodyFat:12,preset:'custom'}));
+  near(withFat.r,0.65);
+  near(withFat.bodyFat,12);
 });
 process.stdout.write(`${passed} independent model checks passed.\n`);

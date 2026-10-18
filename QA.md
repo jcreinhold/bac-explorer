@@ -1,12 +1,14 @@
 # Verification
 
-Initial release checked October 16, 2026. The default-marker and model-explanation update was checked October 18, 2026.
+Initial release checked October 16, 2026. The default-marker, model-explanation, and optional body-fat updates were checked October 18, 2026.
 
 ## Automated calculation and state checks
 
-`node tests/model-test.cjs` — **19 checks passed** against the model script extracted from the shipped HTML, with no third-party test dependencies.
+`node tests/model-test.cjs` — **25 checks passed** against the model script extracted from the shipped HTML, with no third-party test dependencies.
 
 Coverage includes independently calculated numerical examples; all 286 coordinates; nonnegative clamping; elimination and dose direction; beer/wine/spirits equivalence; inclusive threshold boundaries; lb/kg conversion; documented numeric limits; preset precedence; custom state round trips; unsupported URL versions; nonfinite, fractional, malformed, and hostile parameters; paired marker validation; fresh 0.040% / 0.080% defaults; preservation of explicit older-link markers; and independent unit checks for effective dilution volume and implied grams/hour.
+
+Body-fat checks add independent numerical anchors, fat-free mass and water mass balance, equivalence to the body-water BAC equation, precedence of derived versus manually chosen r, both blood-water references and input endpoints in shared URLs, missing/invalid input handling, and compatibility with earlier links that contain no body-fat measurement.
 
 One independent anchor: 160 lb, 4 US standard drinks over 2 hours, r = 0.68, elimination 0.015 percentage points/hour gives 0.083473223…%, displayed as 0.083%. Switching to r = 0.55 gives 0.110294166…%, displayed as 0.110%.
 
@@ -35,6 +37,17 @@ The app was served locally over HTTP and checked in the desktop app's browser.
 - Invalid r clears the derived readouts and table; correcting it recovers the results.
 - Expanded body-composition and elimination explanations were inspected. At 375 × 850, the revised control and explanatory text remain readable with no page overflow.
 - Browser console inspection during these checks showed no warnings or errors.
+
+## Optional body-fat update checks
+
+- Fresh pages retain the numeric 0.68 preset and a blank body-fat input. Selecting the optional mode without a measurement clears the estimate and disables sharing and transfer to manual mode.
+- At 160 lb, 10% body fat, and the 0.825 blood-water reference, the readouts show r = 0.799 L/kg, modeled fat-free mass 65.3 kg, about 47.8 L body water, and about 58.0 L effective dilution volume. The default 3-drink, 2-hour scenario displays 0.042%.
+- The alternate 0.838 reference gives r = 0.786 and the scenario displays 0.044%. Transfer to manual mode preserves the full value 0.7861575178997614; editing manual r to 0.7 takes precedence. Returning to body-fat mode restores the derived value.
+- Switching lb/kg preserves the scenario estimate. A 60% example with the alternate reference transfers to manual r = 0.3494033412887828 without clipping or an input error.
+- Entering 0% clears the result and derived readouts, shows a plain-language error, and disables sharing. Correcting the input restores the estimate.
+- Copying a link, resetting, and reopening it restores body fat, the blood-water reference, the active method, weight unit, and scenario. Reset clears the optional measurement and restores the default preset.
+- At 375 × 850, the new controls and expanded formula/source notes remain readable without page overflow. The phone screenshot is included alongside the bundle.
+- Browser console inspection after these interactions showed no warnings or errors.
 
 ## Verification limits
 

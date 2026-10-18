@@ -29,7 +29,7 @@ The model is a simplified member of the Widmark family. It uses distribution and
 ## Defaults and customization
 
 - **Weight:** 160 lb initially; the user can change it independently of anyone else's settings.
-- **Distribution:** `r = 0.68 L/kg` by default, with a second preset of `0.55 L/kg` and a custom input from 0.40 to 0.90.
+- **Distribution:** `r = 0.68 L/kg` by default, with a second preset of `0.55 L/kg` and an optional body-fat derivation and a custom input from 0.30 to 0.90.
 - **Elimination:** `beta = 0.015` BAC percentage points/hour, with an exploration range of 0.010 to 0.030.
 - **Reference markers:** 0.040% and 0.080% BAC initially, both editable.
 
@@ -39,9 +39,43 @@ The model is a simplified member of the Widmark family. It uses distribution and
 
 Alcohol distributes mainly in body water. Muscle contains more water than fat. At the same weight, more muscle and less body fat generally mean a larger dilution volume and higher r; more body fat generally means lower r. Differences in body composition help explain the traditional adult male/female average difference. A controlled study compared body-fat-derived and alcohol-curve-derived distribution volumes, while later work discusses limitations of fixed factors: [Cowan et al. (1996)](https://pubmed.ncbi.nlm.nih.gov/8872236/), [Maskell et al. (2020)](https://doi.org/10.1016/j.forsciint.2020.110532).
 
-The control is labeled **Alcohol dilution factor (r)**, and its presets are numeric: **0.68 L/kg**, **0.55 L/kg**, or **Custom r**. A short explanation below identifies the traditional adult male/female reference averages and says that anyone can use either preset or a custom value. Current body composition may differ from either average. These historical study-group labels should not be read as evidence that the studies measured gender identity or that a person's sex assignment determines an individual r.
+The control is labeled **Alcohol dilution factor (r)**, and its presets are numeric: **0.68 L/kg**, **0.55 L/kg**, **Estimate from body fat**, or **Custom r**. A short explanation below identifies the traditional adult male/female reference averages and says that anyone can use either preset or a custom value. Current body composition may differ from either average. These historical study-group labels should not be read as evidence that the studies measured gender identity or that a person's sex assignment determines an individual r.
 
-A measured body-fat percentage can inform the direction of a comparison, but it is not r and should not be subtracted from 100% to obtain r. This app does not claim a validated one-to-one body-fat-to-r conversion. The custom range permits exploration; it is not an individualized confidence interval. Age, hydration, blood-water concentration, and how body composition is measured also matter.
+A body-fat percentage is not itself r, but it can support the explicit, assumption-based derivation below. Neither a preset nor this derived value measures an individual's distribution volume. The custom range permits exploration; it is not an individualized confidence interval.
+
+### Optional body-fat estimate of r
+
+Selecting **Estimate from body fat** reveals a blank body-fat input. No body-fat measurement is invented or used by default. Entered values can range from 3 to 60%; these are interface limits for comparison, not a statement of healthy ranges or validated predictive coverage. The method is intended as an approximation for normally hydrated adults.
+
+The derivation combines two research-supported relationships. It is not represented as a single published or independently validated athlete BAC equation:
+
+```text
+p = body_fat_percent / 100
+fat_free_mass_kg = weight_kg × (1 − p)
+estimated_water_mass_kg = 0.732 × fat_free_mass_kg
+apparent_distribution_volume_L = estimated_water_mass_kg / Fw
+r_L_per_kg = apparent_distribution_volume_L / weight_kg
+
+Therefore: r ≈ 0.732 × (1 − body_fat_percent / 100) / Fw
+```
+
+**Hydration assumption:** 0.732 kg water per kg fat-free mass is a conventional adult body-composition coefficient. Fat-free mass includes organs, bone, and other non-fat tissues; it is not just muscle. The coefficient is a population approximation with individual variation, not a measurement of the user's hydration. [Wang et al. (1999), Hydration of fat-free body mass](https://doi.org/10.1093/ajcn/69.5.833) reviews its basis; [Wang et al. (1999), physiological modeling](https://pubmed.ncbi.nlm.nih.gov/10362610/) explains the underlying compartment assumptions.
+
+**Blood-water conversion:** Fw is water mass per liter of whole blood. The selectable references are 0.825 kg/L (default) and 0.838 kg/L. [Maskell et al. (2023), Equation 2](https://doi.org/10.1111/1556-4029.15317), relates body water to distribution volume using these references for male and female study groups. [Author-hosted article](https://eprints.gla.ac.uk/301086/1/301086.pdf). Either reference can be selected; the app does not infer blood water from gender. Switching 0.825 to 0.838 lowers r by about 1.6% at a fixed body-fat percentage.
+
+**Unit note:** the cited letter prints “0.825% w/v” and “0.838% w/v” beside decimal factors. The implementation uses the decimal factors in its equation, not 0.825 divided by 100. Here 0.825 kg/L means 82.5 g water per 100 mL of whole blood. Estimated water mass is shown as approximate liters using water density ≈ 1 kg/L. Working in water mass as above keeps the dimensional derivation explicit.
+
+Weight cancels when deriving r, but not when calculating BAC or total dilution volume. Thus two people with equal body-fat percentage and Fw receive the same modeled r; the heavier person still has a larger total dilution volume.
+
+At **10% body fat**, Fw = 0.825 gives **r ≈ 0.799 L/kg**. At 20% and 30%, the corresponding values are approximately 0.710 and 0.621. For an 80 kg adult at 10%, fat-free mass is 72 kg, estimated water mass is 52.704 kg, and apparent dilution volume is about 63.884 L. These are reproducible model examples, not measured distributions.
+
+**Athletes:** a lean athlete can differ from a population-average preset, but “athlete” is not a sufficient adjustment by itself. [Sagayama et al. (2020)](https://pubmed.ncbi.nlm.nih.gov/32239309/) compared 128 young adults, including 97 athletes. Average fat-free-mass hydration was similar in athletes and non-athletes, while individual variation and body-composition measurement assumptions remained relevant. This supports examining measured body composition rather than applying an athlete multiplier; it does not validate the entire BAC estimator in athletes.
+
+**Limits and sensitivity:** dehydration, fluid retention, recent weight cutting, aging, medical conditions, and error in measured body-fat percentage can violate assumptions. Consumer impedance scales often infer body composition from electrical measurements and assumed hydration, so reusing their body-fat result does not create an independent water measurement. At Fw = 0.825, a three-percentage-point body-fat error alone shifts r by about 0.027; that is an algebraic sensitivity example, not a confidence interval. The table still omits individualized absorption and drink timing. More input detail is not a guarantee of greater predictive accuracy.
+
+**Manual override:** Custom r is always available. **Use this estimate as manual r** copies the full-precision derived value into manual mode, where it can be changed. Later body-fat values do not control r while manual mode is selected. Reset clears the body-fat input and restores the numeric default preset. The manual floor is now 0.30 L/kg so higher-body-fat modeled values can be transferred without clamping. No derived r is silently clipped.
+
+**Elimination:** this feature only derives r. It leaves the editable BAC-drop assumption unchanged. The implied grams/hour readout therefore changes with r, as explained below; it is not a new measurement or prediction of metabolic capacity.
 
 ### Why the elimination default is a concentration drop
 

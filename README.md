@@ -16,7 +16,7 @@ You can send this HTML file directly to your partner. They open their own copy a
 
 - A full matrix: 0–21 US standard drinks × 0–12 hours spent drinking.
 - BAC percentages on every cell, selectable scenarios, sticky headers, and keyboard arrow navigation.
-- Body weight in lb or kg; numeric r presets (0.68 / 0.55 L/kg), a custom r, and plain-language body-composition explanations.
+- Body weight in lb or kg; numeric r presets (0.68 / 0.55 L/kg), an optional body-fat estimate, a manual r, and plain-language explanations.
 - Editable caution markers (defaults 0.040% / 0.080%) and elimination assumption, with immediate validation and recalculation.
 - A readable “One hour” view for small screens, alongside the scrollable full matrix.
 - A serving-size / ABV converter. Table rows always stay 14 g US standard drinks.
@@ -40,7 +40,11 @@ The deployment steps follow [GitHub's publishing-source documentation](https://d
 
 ## Body composition and elimination
 
-The preset chooses r, an effective dilution volume per kilogram. The calculation uses its numeric value, not a sex or gender label. A live readout shows r and the total dilution volume. More muscle generally points toward higher r, and more body fat toward lower r at the same weight; body-fat percentage alone is not an exact conversion.
+The factor control chooses r, an effective dilution volume per kilogram. The calculation uses its numeric value, not a sex or gender label. A live readout shows r and the total dilution volume.
+
+Choose **Estimate from body fat** to enter an optional measured percentage. It derives r from fat-free mass using the conventional 0.732 hydration assumption and a selectable blood-water reference, default 0.825 kg/L. The formula, assumptions, and citations are visible in **Body-fat formula & sources** and explained in MODEL.md. It is an assumption-based derivation, not an independently validated athlete BAC formula. No body-fat value is supplied by default.
+
+**Custom r** remains available. **Use this estimate as manual r** copies the derived value into manual mode for adjustment. Body fat can be 3–60% and manual r can be 0.30–0.90 L/kg; these are exploration limits, not healthy ranges. Body-fat measurement error and hydration can materially affect the estimate. The feature leaves elimination independently adjustable.
 
 Elimination is an independently adjustable drop in BAC concentration, defaulting to 0.015 percentage points/hour. Another readout shows the grams/hour implied by that rate, weight, and r. Expanded notes explain the population-average default and why metabolic capacity cannot be inferred from weight and r alone.
 
@@ -54,7 +58,7 @@ Click a cell to update the scenario. To navigate with a keyboard, Tab to the sel
 
 The optional converter estimates US standard drinks in one serving using fluid ounces and ABV. For example, 16 fl oz at 8% ABV is approximately 2.13 US standard drinks. The table uses whole-drink rows; the converter intentionally does not round your serving into a selected row automatically.
 
-Copy share link includes the current weight, weight unit, distribution assumption, elimination rate, caution markers, selected cell, table view, and converter settings. Anyone with the link can read them. No cookies or local storage are used. Clipboard access can require HTTPS or localhost; a manual-copy field appears when automatic copying is unavailable.
+Copy share link includes the current weight, weight unit, distribution assumption, elimination rate, caution markers, selected cell, table view, converter settings, and body-fat/blood-water settings if entered. An entered body-fat value is retained for comparison even when another r mode is selected, and is included in copied links. Anyone with the link can read these settings. No cookies or local storage are used. Clipboard access can require HTTPS or localhost; a manual-copy field appears when automatic copying is unavailable.
 
 ## Verify the model
 
